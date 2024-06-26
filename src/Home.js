@@ -2,8 +2,8 @@
 import * as React from "react";
 import Checkbox from "@mui/material/Checkbox";
 import { DataGrid } from "@mui/x-data-grid";
-import { Dummy as items } from "./data/dummy";
-import { Cols } from "./data/dummy";
+import { RowData } from "./data/dummy";
+import { ColumnData } from "./data/dummy";
 import "./Styles/ItemBox.css";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Radio from "@mui/material/Radio";
@@ -28,36 +28,60 @@ import Drawer from "@mui/material/Drawer";
 import AppBar from "@mui/material/AppBar";
 import CssBaseline from "@mui/material/CssBaseline";
 import Toolbar from "@mui/material/Toolbar";
+import CloseIcon from "@mui/icons-material/Close";
+import { FlippedColumnData, FlippedRowData } from "./data/flippedDummy";
 // imports End here
 
 // variables assignments
 const drawerWidth = 240;
 const label = { inputProps: { "aria-label": "Checkbox demo" } };
 const itemListColumns = [];
-let array = [];
+const itemListRows = [];
+let array1 = [];
+let array2 = [];
+
 const columns = [];
 let i = 0;
+let j = 0;
 let pos = [0];
 let y = 0;
+const commonPoint = {
+  id: 99,
+  name: "label",
+  field: "name",
+  headerName: "",
+  product: "label",
+  image: "label",
+  value: 10,
+  width: 30,
+};
+array1.push(commonPoint);
 
 // main functional component starts here
 export default function Home(props) {
   //State Initialization
   const [check, setCheck] = React.useState(true);
-  const [value, setValue] = React.useState("");
-  const [checked, setChecked] = React.useState([1]);
+  let [tableValue, setTableValue] = React.useState("");
+  const [checkedRow, setCheckedRow] = React.useState([0]);
+  const [checkedColumn, setCheckedColumn] = React.useState([0]);
   const [count, setCount] = React.useState(1);
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [showTick, setShowTick] = React.useState(false);
   const [tracker, setTracker] = React.useState(false);
+  const [edit, setEdit] = React.useState(false);
+  const [indicator, setIndicator] = React.useState(false);
+  const [ListValue, setListValue] = React.useState([]);
 
   //Assignment
   const { window } = props;
   //No Ref
   const nodeRef = React.useRef(null);
-
+  const generateKey = (pre) => {
+    return `${pre}_${new Date().getTime()}`;
+  };
   useEffect(() => {
-    handleColumn();
+    handleColumns();
+    handleRow();
   }, []);
 
   //Functions
@@ -79,83 +103,156 @@ export default function Home(props) {
     setCount(count - 1);
   };
 
-  const onTick = () => setShowTick(true);
+  const handleEdit = () => {
+    setShowTick(false);
+    setEdit(!edit);
+  };
+
+  const onAddClick = (event) => {
+    setShowTick(true);
+    setEdit(false);
+  };
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
-  const handleToggle = (value2) => () => {
-    const currentIndex = checked.indexOf(value2);
-    const newChecked = [...checked];
+  const handleColumnToggle =
+    (value2, tabularData, listValue, is_data_Setting) => () => {
+      //
+      // if (is_data_Setting) {
+      //   // array1.splice(listValue.indexOf(value2));
+      // } else {
+      //
+      //   array2 = array2.map((item) => {
+      //     if (value2.name != item.name) {
+      //       return item;
+      //     }
+      //   });
+      // }
+      const currentIndex = checkedColumn.indexOf(value2);
+      const newChecked = [...checkedColumn];
 
-    if (currentIndex === -1) {
-      newChecked.push(value2);
-    } else {
-      newChecked.splice(currentIndex, 1);
-    }
+      if (currentIndex === -1) {
+        newChecked.push(value2);
+      } else {
+        newChecked.splice(currentIndex, 1);
+      }
 
-    for (let index = 0; index < Cols.length; index++) {
-      if (Cols[index].field === value2) {
-        if (!columns.includes(Cols[index])) {
-          columns.push(Cols[index]);
+      let temp = [];
+      for (let index = 0; index < listValue.length; index++) {
+        if (listValue[index].name === value2.name) {
+          listValue.splice(is_data_Setting ? listValue.indexOf(value2) : 0, 1);
         } else {
-          columns.splice(columns.indexOf(Cols[index]), 1);
+          temp.push(listValue[listValue.indexOf(value2)]);
         }
       }
-    }
 
-    setChecked(newChecked);
-  };
+      setCheckedColumn(newChecked);
+    };
 
   const handleTracker = (event) => {
     setTracker(event.target.className);
   };
 
   const handleChange = (event) => {
-    setValue(event.target.value);
+    tableValue = event.target.value;
+    setTableValue(event.target.value);
   };
 
   const handleOnSearch = (string, results) => {};
 
   const handleOnHover = (result) => {};
 
-  const handleOnSelect = (item) => {
-    array = Object.assign([], array);
-    array.push(item);
-    while (i < array.length) {
-      document.getElementById("run" + [i]).innerHTML = array[i].name;
-      i++;
-    }
+  const handleOnRowSelect = (item) => {
+    array1 = Object.assign([], array1);
+
+    item.renderCell = (value3) => {
+      if (value3.row.field === "image") {
+        return (
+          <img
+            className="h-20"
+            src={value3.row[item.name]}
+            alt="refrigerator"
+          ></img>
+        );
+      } else {
+        return <p>{value3.row[item.name]}</p>;
+      }
+    };
+    // return (
+    //   <img className="h-20" src={value3.row.image} alt="refrigerator"></img>
+    // );
+
+    array1.push(item);
+    setCheckedRow([...checkedRow, 1]);
+    setIndicator(true);
+  };
+
+  const handleOnColumnSelect = (item) => {
+    array2 = Object.assign([], array2);
+
+    array2.push(item);
+    setCheckedColumn([...checkedColumn, 1]);
   };
 
   const handleOnFocus = () => {};
 
-  const handleColumn = () => {
-    for (let index = 0; index < Cols.length; index++) {
+  const handleColumns = () => {
+    for (let index = 0; index < ColumnData.length; index++) {
       if (itemListColumns.length < 5) {
-        itemListColumns.push(Cols[index].field);
+        itemListColumns.push(ColumnData[index].field);
       }
     }
   };
 
-  const formatResult = (item) => {
+  const handleRow = () => {
+    for (let index = 0; index < RowData.length; index++) {
+      if (itemListRows.length < 5) {
+        itemListRows.push(RowData[index].field);
+      }
+    }
+  };
+
+  const formatRowResult = (row) => {
+    return (
+      <div className="">
+        <span style={{ display: "block", textAlign: "left" }}>
+          id: {row.id}
+        </span>
+        <span style={{ display: "block", textAlign: "left" }}>
+          name: {row.name}
+        </span>
+        <span style={{ display: "block", textAlign: "left" }}>
+          product: {row.product}
+        </span>
+        <span style={{ display: "block", textAlign: "left" }}>
+          value: {row.value}
+        </span>
+      </div>
+    );
+  };
+
+  const formatColumnResult = (row) => {
     return (
       <>
-        <span style={{ display: "block", textAlign: "left" }}>
-          id: {item.id}
-        </span>
-        <span style={{ display: "block", textAlign: "left" }}>
-          name: {item.name}
-        </span>
-        <span style={{ display: "block", textAlign: "left" }}>
-          product: {item.product}
-        </span>
-        <span style={{ display: "block", textAlign: "left" }}>
-          value: {item.value}
-        </span>
+        <span style={{ display: "block", textAlign: "left" }}>{row.name}</span>
       </>
     );
+  };
+
+  const editCell = (event) => {
+    if (RowData.includes(event.row)) {
+      // for (let index = 0; index < RowData.length; index++) {
+      // }
+    }
+  };
+  //
+
+  const handleListSettings = (value2, is_data_Setting) => {
+    // setListValue(listValue);
+
+    array2.splice(array2.indexOf(value2), 1);
   };
 
   // drawer
@@ -181,38 +278,115 @@ export default function Home(props) {
   const container =
     window !== undefined ? () => window().document.body : undefined;
 
-  function Table(props) {
-    y = props.value || 0;
-    let x = 10;
-    let width = "400px";
-    let height = "300px";
-    console.log(x, y);
-    if (value === "Table" && check && tracker) {
+  const EditTable = (props) => {
+    if (edit) {
       return (
-        <Rnd
-          default={{
-            x: x.toString(),
-            y: y.toString(),
-            width: width,
-            height: height,
-          }}
-          noderef={nodeRef}
-          className="bg-white"
-        >
+        <Box sx={{ height: 600, width: "100vh" }}>
           <DataGrid
-            rows={array}
-            columns={columns}
-            pageSize={array.length}
-            rowsPerPageOptions={[3]}
+            rows={RowData}
+            columns={ColumnData}
+            rowHeight={97}
+            onCellEditCommit={editCell}
+            onCellEditStart={editCell}
           />
-        </Rnd>
+        </Box>
       );
     }
-  }
+  };
+
+  const FocusIndicator = (props) => {
+    if (array1.length !== 0) {
+      y = props.value || 10;
+      let x = 10;
+      let width = 130 * array1.length;
+
+      let height = "50px";
+      if (showTick && !tracker && check && indicator) {
+        y = props.value || 10;
+        let x = 10;
+        let width = 130 * array1.length;
+        let height = "53px";
+        return (
+          <Rnd
+            default={{
+              x: parseInt(x.toString()),
+              y: parseInt(y.toString()),
+              width: width,
+              height: height,
+            }}
+            noderef={nodeRef}
+            className="bg-white"
+          >
+            <DataGrid
+              rows={array2}
+              columns={array1}
+              pageSize={array2.length}
+              rowsPerPageOptions={[array2.length]}
+              disableColumnMenu
+              hideFooter
+            />
+          </Rnd>
+        );
+      } else if (
+        showTick &&
+        tableValue !== "Table" &&
+        tracker &&
+        check &&
+        indicator
+      ) {
+        array1[0].headerName = "Label";
+        array1[0].width = 130;
+        y = props.value || 10;
+        let x = 10;
+        let width = 130 * array1.length;
+        let height = 90 * array2.length + 53;
+        return (
+          <Rnd
+            default={{
+              x: parseInt(x.toString()),
+              y: parseInt(y.toString()),
+              width: width,
+              height: height,
+            }}
+            noderef={nodeRef}
+            className="bg-white"
+          >
+            <DataGrid
+              rows={array2}
+              columns={array1}
+              pageSize={array2.length}
+              rowsPerPageOptions={[array2.length]}
+              disableColumnMenu
+              hideFooter
+            />
+          </Rnd>
+        );
+      } else if (showTick && tableValue === "Table" && check && indicator) {
+        y = props.value + 10;
+        let x = 10;
+        let width = 130 * array1.length;
+        let height = 90 * array2.length + 53;
+
+        return (
+          <Rnd
+            default={{
+              x: parseInt(x.toString()),
+              y: parseInt(y.toString()),
+              width: width,
+              height: height,
+            }}
+            noderef={nodeRef}
+            className="bg-white"
+          >
+            <DataGrid rows={array2} columns={array1} />
+          </Rnd>
+        );
+      }
+    }
+  };
 
   const ListCheckboxes = (props) => {
-    const visible = props.visible;
-    if (visible === "Table") {
+    if (true) {
       return (
         <div className="bg-white h-64 w-64">
           <List
@@ -223,27 +397,57 @@ export default function Home(props) {
               bgcolor: "background.paper",
             }}
           >
-            {itemListColumns.map((value2) => {
-              const labelId = `${value2}`;
-              return (
-                <ListItem
-                  key={value2}
-                  secondaryAction={
-                    <Checkbox
-                      color="default"
-                      edge="end"
-                      onChange={handleToggle(value2)}
-                      checked={checked.indexOf(value2) !== -1}
-                      inputProps={{ "aria-labelledby": labelId }}
-                    />
-                  }
-                  disablePadding
-                >
-                  <ListItemButton>
-                    <ListItemText id={labelId} primary={`${value2}`} />
-                  </ListItemButton>
-                </ListItem>
-              );
+            {props.array.map((value2, index) => {
+              if (props.is_data_Setting) {
+                if (value2.name != "label") {
+                  const labelId = `${value2.name}`;
+                  return (
+                    <ListItem
+                      key={index}
+                      secondaryAction={
+                        <IconButton
+                          edge="end"
+                          aria-label="delete"
+                          onClick={handleColumnToggle(
+                            value2,
+                            props.tabularData,
+                            props.array,
+                            props.is_data_Setting
+                          )}
+                        >
+                          <CloseIcon />
+                        </IconButton>
+                      }
+                    >
+                      <ListItemText primary={value2.name} />
+                    </ListItem>
+                  );
+                }
+              } else {
+                const labelId = `${value2.name}`;
+
+                return (
+                  <ListItem
+                    key={index}
+                    secondaryAction={
+                      <IconButton
+                        edge="end"
+                        aria-label="delete"
+                        onClick={handleColumnToggle(
+                          value2,
+                          props.tabularData,
+                          props.array,
+                          props.is_data_Setting
+                        )}
+                      >
+                        <CloseIcon />
+                      </IconButton>
+                    }
+                  >
+                    <ListItemText primary={value2.name} />
+                  </ListItem>
+                );
+              }
             })}
           </List>
         </div>
@@ -274,14 +478,13 @@ export default function Home(props) {
             sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
             aria-label="mailbox folders"
           >
-            {/* The implementation can be swapped with js to avoid SEO duplication of links. */}
             <Drawer
               container={container}
               variant="temporary"
               open={mobileOpen}
               onClose={handleDrawerToggle}
               ModalProps={{
-                keepMounted: true, // Better open performance on mobile.
+                keepMounted: true,
               }}
               sx={{
                 display: { xs: "block", sm: "none" },
@@ -321,7 +524,7 @@ export default function Home(props) {
               <div>
                 <IoAddCircleOutline
                   className="mr-5 text-2xl hover:text-3xl text-black"
-                  onClick={onTick}
+                  onClick={onAddClick}
                 />
               </div>
               <IoCopyOutline
@@ -332,12 +535,16 @@ export default function Home(props) {
                 className="mr-5 text-2xl hover:text-3xl text-black"
                 onClick={decrementCount}
               />
-              <IoSettingsOutline className="ml-auto text-2xl hover:text-3xl text-black " />
+              <IoSettingsOutline
+                className="ml-auto text-2xl hover:text-3xl text-black "
+                onClick={handleEdit}
+              />
             </Toolbar>
             <Divider />
             <div className="grid grid-cols-2 gap-4 place-content-between  ">
               <div className="flex space-x-0">
                 <div>
+                  <EditTable />
                   {showTick ? (
                     <Checkbox
                       color="default"
@@ -349,9 +556,10 @@ export default function Home(props) {
                     />
                   ) : null}
                 </div>
+
                 <div>
-                  {pos.map((value, index) => (
-                    <Table value={value} />
+                  {pos.map((value) => (
+                    <FocusIndicator key={value} value={value} />
                   ))}
                 </div>
               </div>
@@ -387,15 +595,15 @@ export default function Home(props) {
                           <div className="input">
                             <div className="App">
                               <header className="App-header">
-                                <div style={{ width: 270 }}>
+                                <div style={{ width: "100%" }}>
                                   <ReactSearchAutocomplete
-                                    items={items}
+                                    items={RowData}
                                     onSearch={handleOnSearch}
                                     onHover={handleOnHover}
-                                    onSelect={handleOnSelect}
+                                    onSelect={handleOnRowSelect}
                                     onFocus={handleOnFocus}
                                     autoFocus
-                                    formatResult={formatResult}
+                                    formatResult={formatRowResult}
                                     styling={{ borderRadius: "2px" }}
                                   />
                                 </div>
@@ -403,17 +611,12 @@ export default function Home(props) {
                             </div>
                           </div>
                           <br />
-                          <div className="bg-white w-70 h-64 border-black border-[0.5px]">
-                            <div id="run0"></div>
-                            <div id="run1"></div>
-                            <div id="run2"></div>
-                            <div id="run3"></div>
-                            <div id="run4"></div>
-                            <div id="run5"></div>
-                            <div id="run6"></div>
-                            <div id="run7"></div>
-                            <div id="run8"></div>
-                            <div id="run9"></div>
+                          <div className="pt-28">
+                            <ListCheckboxes
+                              is_data_Setting={true}
+                              array={array1}
+                              tabularData={RowData}
+                            ></ListCheckboxes>
                           </div>
                         </div>
                         <div className="page signup">
@@ -421,7 +624,7 @@ export default function Home(props) {
                             <RadioGroup
                               aria-labelledby="demo-controlled-radio-buttons-group"
                               name="controlled-radio-buttons-group"
-                              value={value}
+                              value={tableValue}
                               onChange={handleChange}
                             >
                               <FormControlLabel
@@ -438,9 +641,29 @@ export default function Home(props) {
                               />
                             </RadioGroup>
                           </FormControl>
-                          <div className="border-black border-[0.5px]">
-                            <ListCheckboxes visible={value}></ListCheckboxes>
-                          </div>
+                          <header className="App-header">
+                            <div style={{ width: 350 }} className="pb-5">
+                              <ReactSearchAutocomplete
+                                items={ColumnData}
+                                onSearch={handleOnSearch}
+                                onHover={handleOnHover}
+                                onSelect={handleOnColumnSelect}
+                                onFocus={handleOnFocus}
+                                autoFocus
+                                formatResult={formatColumnResult}
+                                styling={{ borderRadius: "2px" }}
+                              />
+                            </div>
+                          </header>
+                          <br />
+                          <br />
+                          <br />
+                          <br />
+                          <ListCheckboxes
+                            is_data_Setting={false}
+                            array={array2}
+                            tabularData={ColumnData}
+                          ></ListCheckboxes>
                         </div>
                       </div>
                     </div>
