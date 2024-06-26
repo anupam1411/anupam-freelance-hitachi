@@ -259,6 +259,7 @@ export default function Home(props) {
   const drawer = (
     <div>
       <Toolbar />
+      {""}
       <div className="text-center text-3xl font-bold">Menu</div>
       <Divider />
       <List>
